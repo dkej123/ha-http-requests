@@ -61,8 +61,9 @@ Requests integration again.
 
 After installation, **HTTP Requests** appears in the Home Assistant sidebar for
 administrators. Every configured request is shown as a tile in a responsive
-grid. A tile shows its method, URL, latest status, response preview, execution
-time, and timestamp.
+grid. A tile shows its method, URL, latest status, scrollable response preview,
+execution time, and timestamp. Click the response preview to open the complete
+response dialog.
 
 Use **Run** to execute a request directly from the panel. **Details** opens a
 dialog with the complete bounded response (pretty-printed when it is JSON) and

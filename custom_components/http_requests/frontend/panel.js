@@ -23,6 +23,7 @@ const COPY = {
     no: "No",
     error: "Request failed",
     empty: "Empty response",
+    openResponse: "Open full response",
   },
   pl: {
     title: "Żądania HTTP",
@@ -48,6 +49,7 @@ const COPY = {
     no: "Nie",
     error: "Żądanie nie powiodło się",
     empty: "Pusta odpowiedź",
+    openResponse: "Otwórz pełną odpowiedź",
   },
 };
 
@@ -61,6 +63,7 @@ class HttpRequestsPanel extends HTMLElement {
     this._loading = true;
     this._error = null;
     this.shadowRoot.addEventListener("click", (event) => this._handleClick(event));
+    this.shadowRoot.addEventListener("keydown", (event) => this._handleKeydown(event));
   }
 
   set hass(value) {
@@ -121,8 +124,8 @@ class HttpRequestsPanel extends HTMLElement {
 
   _handleClick(event) {
     const target = event.target.closest("[data-action]");
-    if (!target && event.target.closest(".dialog")) return;
     if (!target) return;
+    if (target.classList.contains("overlay") && event.target !== target) return;
     const action = target.dataset.action;
     const entryId = target.dataset.entryId;
     if (action === "refresh") this._load();
@@ -139,6 +142,14 @@ class HttpRequestsPanel extends HTMLElement {
       history.pushState(null, "", "/config/integrations/integration/http_requests");
       window.dispatchEvent(new Event("location-changed"));
     }
+  }
+
+  _handleKeydown(event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const target = event.target.closest('[role="button"][data-action]');
+    if (!target) return;
+    event.preventDefault();
+    target.click();
   }
 
   _errorText(error) {
@@ -186,8 +197,8 @@ class HttpRequestsPanel extends HTMLElement {
         </div>
         <h2>${escapeHtml(config.name)}</h2>
         <code class="url" title="${escapeHtml(config.url)}">${escapeHtml(config.url)}</code>
-        <div class="response-preview ${response ? "" : "muted"}">
-          <span>${t.response}</span>
+        <div class="response-preview ${response ? "" : "muted"}" data-action="details" data-entry-id="${request.entry_id}" role="button" tabindex="0" aria-label="${escapeHtml(t.openResponse)}">
+          <span>${t.response}<ha-icon icon="mdi:open-in-new"></ha-icon></span>
           <pre>${response ? escapeHtml(response) : t.noResponse}</pre>
         </div>
         ${result ? `<div class="meta"><span>${formatDate(result.timestamp)}</span><span>${result.elapsed_ms} ms</span></div>` : ""}
@@ -303,10 +314,13 @@ const STYLES = `
   .status.success i { background:var(--success-color,#43a047); }.status.warning i { background:var(--warning-color,#ffa600); }.status.failure i { background:var(--error-color,#db4437); }
   .card h2 { margin:18px 0 7px; font-size:20px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .url { display:block; overflow:hidden; color:var(--secondary-text-color); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
-  .response-preview { margin-top:18px; padding:13px 14px; border-radius:12px; background:var(--secondary-background-color); }
-  .response-preview>span,label { display:block; margin-bottom:8px; color:var(--secondary-text-color); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .response-preview { display:block; width:100%; min-height:0; margin-top:18px; padding:13px 14px; color:var(--primary-text-color); border-radius:12px; background:var(--secondary-background-color); text-align:left; cursor:pointer; transition:filter .15s; }
+  .response-preview:hover { filter:brightness(.97); }
+  .response-preview:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; }
+  .response-preview>span,label { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; color:var(--secondary-text-color); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .response-preview>span ha-icon { --mdc-icon-size:15px; }
   pre { margin:0; font-family:var(--code-font-family,ui-monospace,monospace); white-space:pre-wrap; overflow-wrap:anywhere; }
-  .response-preview pre { height:66px; overflow:hidden; font-size:12px; line-height:1.45; }
+  .response-preview pre { height:82px; overflow:auto; overscroll-behavior:contain; font-size:12px; line-height:1.45; scrollbar-width:thin; }
   .muted pre { color:var(--disabled-text-color); font-family:inherit; }
   .meta { justify-content:space-between; margin-top:10px; color:var(--secondary-text-color); font-size:11px; }
   .actions { gap:10px; margin-top:18px; }
