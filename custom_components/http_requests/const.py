@@ -1,0 +1,30 @@
+"""Constants for the HTTP Requests integration."""
+
+DOMAIN = "http_requests"
+
+CONF_COMMAND_ID = "command_id"
+CONF_NAME = "name"
+CONF_URL = "url"
+CONF_METHOD = "method"
+CONF_HEADERS = "headers"
+CONF_BODY = "body"
+CONF_PAYLOAD = "payload"
+CONF_CONTENT_TYPE = "content_type"
+CONF_TIMEOUT = "timeout"
+CONF_VERIFY_SSL = "verify_ssl"
+CONF_FOLLOW_REDIRECTS = "follow_redirects"
+CONF_RESPONSE_LIMIT = "response_limit"
+CONF_YAML_KEY = "yaml_key"
+
+DEFAULT_METHOD = "GET"
+DEFAULT_TIMEOUT = 10
+DEFAULT_VERIFY_SSL = True
+DEFAULT_FOLLOW_REDIRECTS = True
+DEFAULT_RESPONSE_LIMIT = 4096
+
+MIN_TIMEOUT = 1
+MAX_TIMEOUT = 300
+MIN_RESPONSE_LIMIT = 256
+MAX_RESPONSE_LIMIT = 65536
+
+SUPPORTED_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE")

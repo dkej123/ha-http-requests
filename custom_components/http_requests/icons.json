@@ -1,0 +1,14 @@
+{
+  "entity": {
+    "button": {
+      "execute": {
+        "default": "mdi:web"
+      }
+    },
+    "sensor": {
+      "last_response": {
+        "default": "mdi:code-json"
+      }
+    }
+  }
+}

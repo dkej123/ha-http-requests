@@ -1,0 +1,86 @@
+{
+  "title": "HTTP Requests",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add an HTTP request",
+        "description": "The request is not executed during setup.",
+        "data": {
+          "name": "Name",
+          "url": "URL",
+          "method": "Method",
+          "headers": "Headers",
+          "body": "Body",
+          "timeout": "Timeout",
+          "response_limit": "Response size limit",
+          "verify_ssl": "Verify TLS certificate",
+          "follow_redirects": "Follow redirects"
+        },
+        "data_description": {
+          "headers": "Key/value object. Add Content-Type here when sending JSON.",
+          "body": "Optional static raw request body.",
+          "timeout": "Total timeout in seconds.",
+          "response_limit": "Maximum response bytes retained in the sensor (256–65536)."
+        }
+      }
+    },
+    "error": {
+      "invalid_name": "Enter a name.",
+      "invalid_url": "Enter a valid absolute HTTP or HTTPS URL.",
+      "invalid_method": "Select a supported HTTP method.",
+      "invalid_headers": "Headers must be a flat object with valid names and scalar values.",
+      "invalid_timeout": "Timeout must be between 1 and 300 seconds.",
+      "invalid_response_limit": "Response size limit must be between 256 and 65536 bytes."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Edit HTTP request",
+        "description": "Saving reloads this request without restarting Home Assistant.",
+        "data": {
+          "name": "Name",
+          "url": "URL",
+          "method": "Method",
+          "headers": "Headers",
+          "body": "Body",
+          "timeout": "Timeout",
+          "response_limit": "Response size limit",
+          "verify_ssl": "Verify TLS certificate",
+          "follow_redirects": "Follow redirects"
+        },
+        "data_description": {
+          "headers": "Key/value object. Add Content-Type here when sending JSON.",
+          "body": "Optional static raw request body.",
+          "timeout": "Total timeout in seconds.",
+          "response_limit": "Maximum response bytes retained in the sensor (256–65536)."
+        }
+      }
+    },
+    "error": {
+      "invalid_name": "Enter a name.",
+      "invalid_url": "Enter a valid absolute HTTP or HTTPS URL.",
+      "invalid_method": "Select a supported HTTP method.",
+      "invalid_headers": "Headers must be a flat object with valid names and scalar values.",
+      "invalid_timeout": "Timeout must be between 1 and 300 seconds.",
+      "invalid_response_limit": "Response size limit must be between 256 and 65536 bytes."
+    }
+  },
+  "entity": {
+    "button": {
+      "execute": {
+        "name": "Execute"
+      }
+    },
+    "sensor": {
+      "last_response": {
+        "name": "Last response"
+      }
+    }
+  },
+  "exceptions": {
+    "request_failed": {
+      "message": "The HTTP request failed: {error}"
+    }
+  }
+}

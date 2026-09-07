@@ -1,0 +1,86 @@
+{
+  "title": "Żądania HTTP",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dodaj żądanie HTTP",
+        "description": "Żądanie nie zostanie wykonane podczas konfiguracji.",
+        "data": {
+          "name": "Nazwa",
+          "url": "Adres URL",
+          "method": "Metoda",
+          "headers": "Nagłówki",
+          "body": "Treść żądania",
+          "timeout": "Limit czasu",
+          "response_limit": "Limit rozmiaru odpowiedzi",
+          "verify_ssl": "Weryfikuj certyfikat TLS",
+          "follow_redirects": "Podążaj za przekierowaniami"
+        },
+        "data_description": {
+          "headers": "Obiekt klucz/wartość. Przy wysyłaniu JSON dodaj tutaj Content-Type.",
+          "body": "Opcjonalna, statyczna treść wysyłana bez przetwarzania.",
+          "timeout": "Całkowity limit czasu w sekundach.",
+          "response_limit": "Maksymalna liczba bajtów odpowiedzi zachowana w sensorze (256–65536)."
+        }
+      }
+    },
+    "error": {
+      "invalid_name": "Podaj nazwę.",
+      "invalid_url": "Podaj prawidłowy, pełny adres HTTP lub HTTPS.",
+      "invalid_method": "Wybierz obsługiwaną metodę HTTP.",
+      "invalid_headers": "Nagłówki muszą być płaskim obiektem z prawidłowymi nazwami i prostymi wartościami.",
+      "invalid_timeout": "Limit czasu musi wynosić od 1 do 300 sekund.",
+      "invalid_response_limit": "Limit odpowiedzi musi wynosić od 256 do 65536 bajtów."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Edytuj żądanie HTTP",
+        "description": "Zapisanie przeładuje to żądanie bez restartowania Home Assistanta.",
+        "data": {
+          "name": "Nazwa",
+          "url": "Adres URL",
+          "method": "Metoda",
+          "headers": "Nagłówki",
+          "body": "Treść żądania",
+          "timeout": "Limit czasu",
+          "response_limit": "Limit rozmiaru odpowiedzi",
+          "verify_ssl": "Weryfikuj certyfikat TLS",
+          "follow_redirects": "Podążaj za przekierowaniami"
+        },
+        "data_description": {
+          "headers": "Obiekt klucz/wartość. Przy wysyłaniu JSON dodaj tutaj Content-Type.",
+          "body": "Opcjonalna, statyczna treść wysyłana bez przetwarzania.",
+          "timeout": "Całkowity limit czasu w sekundach.",
+          "response_limit": "Maksymalna liczba bajtów odpowiedzi zachowana w sensorze (256–65536)."
+        }
+      }
+    },
+    "error": {
+      "invalid_name": "Podaj nazwę.",
+      "invalid_url": "Podaj prawidłowy, pełny adres HTTP lub HTTPS.",
+      "invalid_method": "Wybierz obsługiwaną metodę HTTP.",
+      "invalid_headers": "Nagłówki muszą być płaskim obiektem z prawidłowymi nazwami i prostymi wartościami.",
+      "invalid_timeout": "Limit czasu musi wynosić od 1 do 300 sekund.",
+      "invalid_response_limit": "Limit odpowiedzi musi wynosić od 256 do 65536 bajtów."
+    }
+  },
+  "entity": {
+    "button": {
+      "execute": {
+        "name": "Wykonaj"
+      }
+    },
+    "sensor": {
+      "last_response": {
+        "name": "Ostatnia odpowiedź"
+      }
+    }
+  },
+  "exceptions": {
+    "request_failed": {
+      "message": "Żądanie HTTP nie powiodło się: {error}"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Compile Python
+        run: python -m compileall -q custom_components tests scripts
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate JSON
+        run: |
+          python -m json.tool hacs.json >/dev/null
+          for file in custom_components/http_requests/*.json custom_components/http_requests/translations/*.json; do
+            python -m json.tool "$file" >/dev/null
+          done
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands
