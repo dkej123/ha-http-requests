@@ -151,6 +151,20 @@ class RequestResult:
             lines.append("[response truncated]")
         return "\n".join(lines)
 
+    def as_dict(self) -> dict[str, Any]:
+        """Serialize the result for the administrator panel."""
+        return {
+            "status": self.status,
+            "reason": self.reason,
+            "content_type": self.content_type,
+            "body": self.body,
+            "formatted_body": self.formatted_body(),
+            "elapsed_ms": self.elapsed_ms,
+            "timestamp": self.timestamp.isoformat(),
+            "truncated": self.truncated,
+            "error": self.error,
+        }
+
     @classmethod
     def failure(cls, error: str, elapsed_ms: int) -> "RequestResult":
         """Build a failed result without exposing exception details."""

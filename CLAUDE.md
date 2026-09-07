@@ -16,7 +16,10 @@ bounded response in memory. Never log configured URLs, headers, bodies, or
 response bodies because they may contain credentials. Adding/editing a config
 entry must not execute its request.
 
-Each entry exposes exactly one execute button and one latest-response sensor.
+Each entry exposes one execute button, one latest-status sensor, and one
+response-body sensor. An administrator-only custom panel uses WebSocket
+commands to list and execute requests; never make these commands available to
+non-admin users because request headers and bodies can contain credentials.
 Entity unique IDs are based on `command_id`, so renaming a command must not
 replace entities. The response size limit must be enforced while streaming;
 never read an unbounded response into memory.
@@ -30,6 +33,7 @@ core-only `strings.json` file.
 ```bash
 python3 -m compileall -q custom_components tests scripts
 python3 -m unittest discover -s tests -v
+node --check custom_components/http_requests/frontend/panel.js
 for file in hacs.json custom_components/http_requests/*.json \
   custom_components/http_requests/translations/*.json; do
   python3 -m json.tool "$file" >/dev/null

@@ -36,6 +36,8 @@ from .const import (
     SUPPORTED_METHODS,
 )
 from .model import RequestConfig
+from .panel import async_register_panel
+from .websocket_api import async_register_websocket_commands
 
 PLATFORMS: tuple[Platform, ...] = (Platform.BUTTON, Platform.SENSOR)
 
@@ -75,7 +77,9 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Import YAML requests into config entries."""
+    """Register the panel API and import YAML requests."""
+    async_register_websocket_commands(hass)
+    await async_register_panel(hass)
     for yaml_key, command in config.get(DOMAIN, {}).items():
         await hass.config_entries.flow.async_init(
             DOMAIN,

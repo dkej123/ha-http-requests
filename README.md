@@ -16,6 +16,8 @@ represented by a button, an HTTP status sensor, and a response-body sensor.
   size limit.
 - Latest HTTP status, response body, content type, duration, and timestamp are
   exposed by sensors on the request's device page.
+- Administrator-only **HTTP Requests** panel with a responsive request grid,
+  one-click execution, and formatted response/configuration dialogs.
 - English and Polish UI translations.
 
 ## Installation
@@ -54,6 +56,22 @@ request, so configuring a POST or DELETE request has no side effects.
 To edit a request, choose **Configure** on its integration entry. The entry is
 reloaded automatically after saving. To add another request, add the HTTP
 Requests integration again.
+
+## HTTP Requests panel
+
+After installation, **HTTP Requests** appears in the Home Assistant sidebar for
+administrators. Every configured request is shown as a tile in a responsive
+grid. A tile shows its method, URL, latest status, response preview, execution
+time, and timestamp.
+
+Use **Run** to execute a request directly from the panel. **Details** opens a
+dialog with the complete bounded response (pretty-printed when it is JSON) and
+the request configuration: URL, method, source, timeout, response limit, TLS,
+redirects, headers, and body. Editing continues to use Home Assistant's native
+integration configuration screen, opened from the dialog.
+
+The panel and its WebSocket API require an administrator account because
+headers and request bodies may contain credentials.
 
 ## Entities and automations
 

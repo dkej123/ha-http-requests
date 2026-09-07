@@ -139,6 +139,25 @@ class RequestResultTest(unittest.TestCase):
 
         self.assertEqual(result.formatted_body(), "plain response")
 
+    def test_panel_payload_contains_formatted_and_raw_response(self) -> None:
+        result = RequestResult(
+            timestamp=datetime(2026, 9, 7, 12, 30, tzinfo=timezone.utc),
+            elapsed_ms=18,
+            status=201,
+            reason="Created",
+            content_type="application/json",
+            body='{"created":true}',
+            truncated=True,
+        )
+
+        payload = result.as_dict()
+
+        self.assertEqual(payload["status"], 201)
+        self.assertEqual(payload["body"], '{"created":true}')
+        self.assertEqual(payload["formatted_body"], '{\n  "created": true\n}')
+        self.assertEqual(payload["timestamp"], "2026-09-07T12:30:00+00:00")
+        self.assertTrue(payload["truncated"])
+
 
 class YamlCompatibilityTest(unittest.TestCase):
     def test_rest_command_payload_and_content_type_are_mapped(self) -> None:
