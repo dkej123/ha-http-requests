@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -116,6 +117,39 @@ class RequestResult:
     def state(self) -> int | str:
         """Return the compact sensor state."""
         return self.status if self.status is not None else "error"
+
+    def formatted_body(self, limit: int | None = None) -> str:
+        """Return indented JSON when possible, otherwise unchanged text."""
+        formatted = self.body
+        try:
+            parsed = json.loads(self.body)
+        except (json.JSONDecodeError, TypeError):
+            pass
+        else:
+            if isinstance(parsed, (dict, list)):
+                formatted = json.dumps(parsed, ensure_ascii=False, indent=2)
+        return formatted[:limit] if limit is not None else formatted
+
+    def formatted_response(self, body_limit: int | None = None) -> str:
+        """Build human-readable response details for the entity dialog."""
+        if self.status is None:
+            first_line = "Status: Error"
+        else:
+            reason = f" {self.reason}" if self.reason else ""
+            first_line = f"Status: {self.status}{reason}"
+
+        lines = [
+            first_line,
+            f"Content-Type: {self.content_type or '-'}",
+            f"Duration: {self.elapsed_ms} ms",
+            f"Received: {self.timestamp.isoformat()}",
+        ]
+        if self.error:
+            lines.append(f"Error: {self.error}")
+        lines.extend(("", "Body:", self.formatted_body(body_limit)))
+        if self.truncated:
+            lines.append("[response truncated]")
+        return "\n".join(lines)
 
     @classmethod
     def failure(cls, error: str, elapsed_ms: int) -> "RequestResult":

@@ -110,6 +110,35 @@ class RequestResultTest(unittest.TestCase):
         self.assertEqual(result.state, "error")
         self.assertEqual(result.error, "timeout")
 
+    def test_json_response_is_pretty_printed_for_dialog(self) -> None:
+        result = RequestResult(
+            timestamp=datetime(2026, 9, 7, tzinfo=timezone.utc),
+            elapsed_ms=42,
+            status=200,
+            reason="OK",
+            content_type="application/json",
+            body='{"status":"done","items":[1,2]}',
+        )
+
+        self.assertEqual(
+            result.formatted_body(),
+            '{\n  "status": "done",\n  "items": [\n    1,\n    2\n  ]\n}',
+        )
+        details = result.formatted_response()
+        self.assertIn("Status: 200 OK", details)
+        self.assertIn("Duration: 42 ms", details)
+        self.assertIn('  "status": "done"', details)
+
+    def test_plain_text_response_is_not_changed(self) -> None:
+        result = RequestResult(
+            timestamp=datetime.now(timezone.utc),
+            elapsed_ms=1,
+            status=200,
+            body="plain response",
+        )
+
+        self.assertEqual(result.formatted_body(), "plain response")
+
 
 class YamlCompatibilityTest(unittest.TestCase):
     def test_rest_command_payload_and_content_type_are_mapped(self) -> None:

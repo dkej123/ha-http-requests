@@ -75,6 +75,9 @@
     "sensor": {
       "last_response": {
         "name": "Ostatnia odpowiedź"
+      },
+      "response_body": {
+        "name": "Treść odpowiedzi"
       }
     }
   },

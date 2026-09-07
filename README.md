@@ -2,7 +2,7 @@
 
 A custom Home Assistant integration for creating and running arbitrary HTTP
 requests entirely from the Home Assistant UI. Each configured request is
-represented by a button and a sensor containing the latest response.
+represented by a button, an HTTP status sensor, and a response-body sensor.
 
 ## Features
 
@@ -15,7 +15,7 @@ represented by a button and a sensor containing the latest response.
 - Configurable timeout, TLS certificate verification, redirects, and response
   size limit.
 - Latest HTTP status, response body, content type, duration, and timestamp are
-  exposed by a sensor.
+  exposed by sensors on the request's device page.
 - English and Polish UI translations.
 
 ## Installation
@@ -61,10 +61,16 @@ Requests integration again.
   or through the standard `button.press` action in an automation.
 - `sensor.<name>_last_response` has the HTTP status code as its state. Before
   the first run its state is unknown; transport failures use `error`.
+- `sensor.<name>_response_body` shows the first 255 characters of the response
+  directly on the device page. JSON is automatically pretty-printed. Its entity
+  dialog contains a multiline `formatted_response` attribute with status,
+  content type, duration, timestamp, error, and formatted body.
 
-The response sensor attributes include `response_body`, `content_type`,
+The status sensor attributes include `response_body`, `content_type`,
 `reason`, `elapsed_ms`, `last_run`, `truncated`, and `error`. The response body
 is decoded as text and limited to the configured number of bytes.
+Both response sensors force an update after every execution, even when the
+server returns exactly the same status and body as before.
 
 > Response sensor states and attributes can be stored by Home Assistant's
 > recorder. Avoid retaining sensitive response bodies, or exclude these sensors
