@@ -24,8 +24,8 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
       - name: Build HACS archive
-        working-directory: custom_components
-        run: zip -r ../http_requests.zip http_requests
+        working-directory: custom_components/http_requests
+        run: zip -r ../../http_requests.zip . -x "*__pycache__*" "*.pyc"
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:

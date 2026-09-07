@@ -119,7 +119,8 @@ target:
    ```
 
 The release workflow validates that the tag matches the manifest, runs the
-tests, builds `http_requests.zip`, and publishes a GitHub Release.
+tests, builds `http_requests.zip` with the integration files at the archive
+root (as required by HACS), and publishes a GitHub Release.
 
 ## License
 
