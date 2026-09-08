@@ -171,6 +171,7 @@ class HttpRequestsPanel extends HTMLElement {
   set hass(v) {
     const first = !this._hass;
     this._hass = v;
+    this.toggleAttribute("data-dark", Boolean(v?.themes?.darkMode));
     if (first)
       this._load()
   }
@@ -488,6 +489,11 @@ class HttpRequestsPanel extends HTMLElement {
         g.set(s, []);
       g.get(s).push(r)
     }
+    if (g.has("")) {
+      const unsectioned = g.get("");
+      g.delete("");
+      g.set("", unsectioned)
+    }
     return g
   }
   _sections() {
@@ -572,17 +578,16 @@ class HttpRequestsPanel extends HTMLElement {
     const closed = this._collapsed.has(s), t = this._t;
     return `<section>${
         showHeader
-            ? `<button class="section-head" data-action="toggle-section" data-section="${
-                  escapeHtml(s)}" aria-expanded="${
-                  !closed}"><ha-icon icon="mdi:chevron-${
-                  closed ? "right" : "down"}"></ha-icon><strong>${
-                  escapeHtml(s || t.unsectioned)}</strong><em>${rs.length} ${
-                  t.requests}</em><i></i></button>`
-            : ""}${
+        ? `<button class="section-head" data-action="toggle-section" data-section="${
+              escapeHtml(s)}" aria-expanded="${
+    !closed}"><ha-icon icon="mdi:chevron-${
+        closed ? "right" : "down"}"></ha-icon><strong>${
+        escapeHtml(s || t.unsectioned)}</strong><em>${rs.length} ${
+        t.requests}</em><i></i></button>`: ""}${
         showHeader && closed
-            ? ""
-            : `<div class="grid">${
-                  rs.map(r => this._card(r)).join("")}</div>`}</section>`
+        ? ""
+        : `<div class="grid">${
+              rs.map(r => this._card(r)).join("")}</div>`}</section>`
   }
   _card(r) {
     const t = this._t, c = r.config, z = r.result, state = this._state(r),
@@ -793,6 +798,8 @@ const STYLES =
 
 const HANDOFF_STYLES = `
   :host{--hr-bg:var(--primary-background-color,#0b0d0f);--hr-card:var(--card-background-color,#13181d);--hr-surface:var(--secondary-background-color,#0c1013);--hr-border:var(--divider-color,#1e242b);--hr-text:var(--primary-text-color,#e8ecf1);--hr-muted:var(--secondary-text-color,#8b95a1);--hr-primary:var(--primary-color,#0ea5e9);background:radial-gradient(120% 80% at 15% -10%,color-mix(in srgb,var(--hr-bg) 75%,#252d36) 0%,var(--hr-bg) 60%);color:var(--hr-text);font-family:var(--ha-font-family,Manrope,system-ui,sans-serif)}
+  :host([data-dark]){--hr-bg:#0b0d0f;--hr-card:#13181d;--hr-surface:#0c1013;--hr-border:#1e242b;--hr-text:#e8ecf1;--hr-muted:#8b95a1;--hr-primary:#0ea5e9}
+  .primary{background:var(--hr-primary);color:#03151f}
   *::-webkit-scrollbar{width:6px;height:6px}*::-webkit-scrollbar-thumb{background:#2a3038;border-radius:3px}
   main{max-width:1672px;padding:40px clamp(20px,4vw,56px) 72px}header{align-items:flex-end;gap:24px;margin-bottom:28px}h1{font-size:34px;line-height:1.1;letter-spacing:-.02em}header p{font-size:15px;max-width:52ch}.toolbar{gap:10px}.toolbar button{height:42px;border-radius:11px;font-size:14px}.toolbar .secondary{border:1px solid #232a32;background:#151a1f;color:#c8d2dc}.toolbar .primary{padding:0 18px;color:#03151f;box-shadow:0 6px 20px -8px color-mix(in srgb,var(--hr-primary) 80%,transparent)}
   .controls{gap:8px;margin-bottom:24px;padding:0;border:0;border-radius:0;background:transparent}.filters{gap:8px}.filter,.view-toggle{height:34px;min-height:34px;padding:0 14px;border:1px solid #1f262e;border-radius:99px;background:#12171c;color:#8b95a1;font-size:13px}.filter::before{content:"";width:6px;height:6px;border-radius:50%;background:#64748b}.filter[data-filter="ok"]::before{background:#34d399}.filter[data-filter="fail"]::before{background:#f87171}.filter[data-filter="idle"]::before{background:#94a3b8}.filter b{padding:0;background:transparent;font-variant-numeric:tabular-nums;opacity:.6}.filter.active{border-color:#2b5c78;background:#1a2530;color:#e8ecf1}.view-toggle{background:transparent}.view-toggle:first-of-type{margin-left:auto}
