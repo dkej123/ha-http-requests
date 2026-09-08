@@ -52,6 +52,20 @@ class RequestConfig:
     follow_redirects: bool
     response_limit: int
 
+    def as_dict(self) -> dict[str, Any]:
+        """Serialize validated configuration for storage or the panel."""
+        return {
+            CONF_NAME: self.name,
+            CONF_URL: self.url,
+            CONF_METHOD: self.method,
+            CONF_HEADERS: self.headers,
+            CONF_BODY: self.body,
+            CONF_TIMEOUT: self.timeout,
+            CONF_RESPONSE_LIMIT: self.response_limit,
+            CONF_VERIFY_SSL: self.verify_ssl,
+            CONF_FOLLOW_REDIRECTS: self.follow_redirects,
+        }
+
     @classmethod
     def from_mapping(cls, values: dict[str, Any]) -> "RequestConfig":
         """Create a validated request configuration from stored values."""

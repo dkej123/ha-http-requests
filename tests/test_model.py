@@ -69,6 +69,17 @@ class RequestConfigTest(unittest.TestCase):
         self.assertEqual(config.headers["X-Retry"], "2")
         self.assertEqual(config.body, '{"run":true}')
 
+    def test_validated_config_serializes_for_panel_storage(self) -> None:
+        config = RequestConfig.from_mapping(
+            {"name": "Gate", "url": "http://example.test/open"}
+        )
+
+        values = config.as_dict()
+
+        self.assertEqual(values["name"], "Gate")
+        self.assertEqual(values["method"], "GET")
+        self.assertEqual(values["response_limit"], 4096)
+
     def test_rejects_non_http_and_relative_urls(self) -> None:
         for url in ("/run", "ftp://example.test/file", "http://"):
             with self.subTest(url=url), self.assertRaises(RequestConfigurationError):

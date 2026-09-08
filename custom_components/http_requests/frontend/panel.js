@@ -6,7 +6,23 @@ const COPY = {
     run: "Run",
     running: "Running…",
     details: "Details",
-    edit: "Configure in Home Assistant",
+    add: "Add request",
+    edit: "Edit",
+    save: "Save",
+    saving: "Saving…",
+    cancel: "Cancel",
+    delete: "Delete",
+    deleting: "Deleting…",
+    addTitle: "Add HTTP request",
+    editTitle: "Edit HTTP request",
+    deleteTitle: "Delete request?",
+    deleteConfirm: "This removes the request, its device, and its entities from Home Assistant.",
+    yamlWarning: "This request was imported from YAML. It will return after a Home Assistant restart while it remains in configuration.yaml.",
+    name: "Name",
+    url: "URL",
+    method: "Method",
+    headersHelp: "JSON object, for example {\"Authorization\": \"Bearer …\"}",
+    invalidHeaders: "Headers must be a valid JSON object.",
     noRequests: "No HTTP requests configured yet.",
     noResponse: "No response yet",
     response: "Response",
@@ -32,7 +48,23 @@ const COPY = {
     run: "Uruchom",
     running: "Wysyłanie…",
     details: "Szczegóły",
-    edit: "Konfiguruj w Home Assistant",
+    add: "Dodaj request",
+    edit: "Edytuj",
+    save: "Zapisz",
+    saving: "Zapisywanie…",
+    cancel: "Anuluj",
+    delete: "Usuń",
+    deleting: "Usuwanie…",
+    addTitle: "Dodaj request HTTP",
+    editTitle: "Edytuj request HTTP",
+    deleteTitle: "Usunąć request?",
+    deleteConfirm: "Request, jego urządzenie i encje zostaną usunięte z Home Assistanta.",
+    yamlWarning: "Ten request został zaimportowany z YAML. Po restarcie Home Assistanta wróci, jeśli nadal znajduje się w configuration.yaml.",
+    name: "Nazwa",
+    url: "URL",
+    method: "Metoda",
+    headersHelp: "Obiekt JSON, np. {\"Authorization\": \"Bearer …\"}",
+    invalidHeaders: "Nagłówki muszą być poprawnym obiektem JSON.",
     noRequests: "Nie skonfigurowano jeszcze żadnych żądań HTTP.",
     noResponse: "Brak odpowiedzi",
     response: "Odpowiedź",
@@ -60,10 +92,15 @@ class HttpRequestsPanel extends HTMLElement {
     this._requests = [];
     this._running = new Set();
     this._selected = null;
+    this._editor = null;
+    this._deleteCandidate = null;
+    this._saving = false;
+    this._deleting = false;
     this._loading = true;
     this._error = null;
     this.shadowRoot.addEventListener("click", (event) => this._handleClick(event));
     this.shadowRoot.addEventListener("keydown", (event) => this._handleKeydown(event));
+    this.shadowRoot.addEventListener("submit", (event) => this._handleSubmit(event));
   }
 
   set hass(value) {
@@ -122,26 +159,130 @@ class HttpRequestsPanel extends HTMLElement {
     }
   }
 
+  _openEditor(request = null) {
+    this._selected = null;
+    this._error = null;
+    this._editor = request
+      ? { entry_id: request.entry_id, source: request.source, config: { ...request.config } }
+      : {
+          entry_id: null,
+          source: "ui",
+          config: {
+            name: "",
+            url: "http://",
+            method: "GET",
+            headers: {},
+            body: "",
+            timeout: 10,
+            response_limit: 4096,
+            verify_ssl: true,
+            follow_redirects: true,
+          },
+        };
+    this._render();
+  }
+
+  async _handleSubmit(event) {
+    if (event.target.id !== "request-editor") return;
+    event.preventDefault();
+    if (this._saving) return;
+    const form = new FormData(event.target);
+    let headers;
+    try {
+      headers = JSON.parse(String(form.get("headers") || "{}"));
+      if (!headers || Array.isArray(headers) || typeof headers !== "object") throw new Error();
+    } catch (_error) {
+      const input = event.target.elements.headers;
+      input.setCustomValidity(this._t.invalidHeaders);
+      input.reportValidity();
+      input.addEventListener("input", () => input.setCustomValidity(""), { once: true });
+      return;
+    }
+    const config = {
+      name: String(form.get("name") || ""),
+      url: String(form.get("url") || ""),
+      method: String(form.get("method") || "GET"),
+      headers,
+      body: String(form.get("body") || ""),
+      timeout: Number(form.get("timeout")),
+      response_limit: Number(form.get("response_limit")),
+      verify_ssl: form.has("verify_ssl"),
+      follow_redirects: form.has("follow_redirects"),
+    };
+    const editor = { ...this._editor, config };
+    this._editor = editor;
+    this._saving = true;
+    this._error = null;
+    this._render();
+    try {
+      await this._hass.callWS({
+        type: editor.entry_id ? "http_requests/update" : "http_requests/create",
+        ...(editor.entry_id ? { entry_id: editor.entry_id } : {}),
+        config,
+      });
+      this._editor = null;
+      await this._load();
+    } catch (error) {
+      this._error = this._errorText(error);
+    } finally {
+      this._saving = false;
+      this._render();
+    }
+  }
+
+  async _deleteRequest(request) {
+    if (this._deleting) return;
+    this._deleting = true;
+    this._error = null;
+    this._render();
+    try {
+      await this._hass.callWS({ type: "http_requests/delete", entry_id: request.entry_id });
+      this._deleteCandidate = null;
+      this._selected = null;
+      await this._load();
+    } catch (error) {
+      this._error = this._errorText(error);
+    } finally {
+      this._deleting = false;
+      this._render();
+    }
+  }
+
   _handleClick(event) {
     const target = event.target.closest("[data-action]");
     if (!target) return;
     if (target.classList.contains("overlay") && event.target !== target) return;
     const action = target.dataset.action;
     const entryId = target.dataset.entryId;
+    const request = this._requests.find((item) => item.entry_id === entryId);
     if (action === "refresh") this._load();
+    if (action === "add") this._openEditor();
     if (action === "run") this._run(entryId);
     if (action === "details") {
-      this._selected = this._requests.find((item) => item.entry_id === entryId);
+      this._selected = request;
       this._render();
     }
-    if (action === "close") {
+    if (action === "close-details") {
       this._selected = null;
       this._render();
     }
-    if (action === "edit") {
-      history.pushState(null, "", "/config/integrations/integration/http_requests");
-      window.dispatchEvent(new Event("location-changed"));
+    if (action === "edit") this._openEditor(request || this._selected);
+    if (action === "close-editor" && !this._saving) {
+      this._editor = null;
+      this._error = null;
+      this._render();
     }
+    if (action === "delete") {
+      this._selected = null;
+      this._deleteCandidate = request || this._editor;
+      this._editor = null;
+      this._render();
+    }
+    if (action === "cancel-delete" && !this._deleting) {
+      this._deleteCandidate = null;
+      this._render();
+    }
+    if (action === "confirm-delete") this._deleteRequest(this._deleteCandidate);
   }
 
   _handleKeydown(event) {
@@ -168,9 +309,14 @@ class HttpRequestsPanel extends HTMLElement {
             <h1>${t.title}</h1>
             <p>${t.subtitle}</p>
           </div>
-          <button class="secondary compact" data-action="refresh" ${this._loading ? "disabled" : ""}>
-            <ha-icon icon="mdi:refresh"></ha-icon>${t.refresh}
-          </button>
+          <div class="toolbar">
+            <button class="secondary compact" data-action="refresh" ${this._loading ? "disabled" : ""}>
+              <ha-icon icon="mdi:refresh"></ha-icon>${t.refresh}
+            </button>
+            <button class="primary compact" data-action="add">
+              <ha-icon icon="mdi:plus"></ha-icon>${t.add}
+            </button>
+          </div>
         </header>
         ${this._error ? `<div class="alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon>${escapeHtml(this._error)}</div>` : ""}
         ${this._loading ? `<div class="loading"><ha-circular-progress active></ha-circular-progress></div>` : ""}
@@ -178,6 +324,8 @@ class HttpRequestsPanel extends HTMLElement {
         <section class="grid">${cards}</section>
       </main>
       ${this._selected ? this._dialog(this._selected) : ""}
+      ${this._editor ? this._editorDialog(this._editor) : ""}
+      ${this._deleteCandidate ? this._deleteDialog(this._deleteCandidate) : ""}
     `;
   }
 
@@ -210,6 +358,9 @@ class HttpRequestsPanel extends HTMLElement {
           <button class="secondary" data-action="details" data-entry-id="${request.entry_id}">
             <ha-icon icon="mdi:text-box-search-outline"></ha-icon>${t.details}
           </button>
+          <button class="icon-button secondary" data-action="edit" data-entry-id="${request.entry_id}" aria-label="${escapeHtml(t.edit)}">
+            <ha-icon icon="mdi:pencil-outline"></ha-icon>
+          </button>
         </div>
       </article>`;
   }
@@ -223,11 +374,11 @@ class HttpRequestsPanel extends HTMLElement {
       : "—";
     const response = result ? this._formattedResponse(result) : t.noResponse;
     return `
-      <div class="overlay" data-action="close">
+      <div class="overlay" data-action="close-details">
         <section class="dialog" role="dialog" aria-modal="true" aria-label="${escapeHtml(config.name)}">
           <div class="dialog-header">
             <div><span class="method">${escapeHtml(config.method)}</span><h2>${escapeHtml(config.name)}</h2></div>
-            <button class="icon-button" data-action="close" aria-label="${t.close}"><ha-icon icon="mdi:close"></ha-icon></button>
+            <button class="icon-button" data-action="close-details" aria-label="${t.close}"><ha-icon icon="mdi:close"></ha-icon></button>
           </div>
           <div class="dialog-content">
             <section>
@@ -249,10 +400,72 @@ class HttpRequestsPanel extends HTMLElement {
             </section>
           </div>
           <div class="dialog-actions">
-            <button class="secondary" data-action="edit"><ha-icon icon="mdi:cog-outline"></ha-icon>${t.edit}</button>
+            <button class="danger-text" data-action="delete" data-entry-id="${request.entry_id}"><ha-icon icon="mdi:delete-outline"></ha-icon>${t.delete}</button>
+            <span class="action-spacer"></span>
+            <button class="secondary" data-action="edit" data-entry-id="${request.entry_id}"><ha-icon icon="mdi:pencil-outline"></ha-icon>${t.edit}</button>
             <button class="primary" data-action="run" data-entry-id="${request.entry_id}" ${this._running.has(request.entry_id) || !request.loaded ? "disabled" : ""}>
               <ha-icon icon="mdi:play"></ha-icon>${t.run}
             </button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  _editorDialog(editor) {
+    const t = this._t;
+    const config = editor.config;
+    const headers = JSON.stringify(config.headers || {}, null, 2);
+    const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+    return `
+      <div class="overlay" data-action="close-editor">
+        <section class="dialog editor-dialog" role="dialog" aria-modal="true" aria-label="${editor.entry_id ? t.editTitle : t.addTitle}">
+          <form id="request-editor">
+            <div class="dialog-header">
+              <h2>${editor.entry_id ? t.editTitle : t.addTitle}</h2>
+              <button type="button" class="icon-button" data-action="close-editor" aria-label="${t.close}" ${this._saving ? "disabled" : ""}><ha-icon icon="mdi:close"></ha-icon></button>
+            </div>
+            <div class="form-content">
+              ${editor.source === "yaml" ? `<div class="warning"><ha-icon icon="mdi:alert-outline"></ha-icon><span>${t.yamlWarning}</span></div>` : ""}
+              <div class="form-grid">
+                <label class="field full"><span>${t.name}</span><input name="name" required maxlength="128" value="${escapeHtml(config.name)}"></label>
+                <label class="field full"><span>${t.url}</span><input name="url" type="url" required value="${escapeHtml(config.url)}"></label>
+                <label class="field"><span>${t.method}</span><select name="method">${methods.map((method) => `<option value="${method}" ${config.method === method ? "selected" : ""}>${method}</option>`).join("")}</select></label>
+                <label class="field"><span>${t.timeout} (s)</span><input name="timeout" type="number" required min="1" max="300" step="1" value="${config.timeout}"></label>
+                <label class="field full"><span>${t.headers}</span><small>${t.headersHelp}</small><textarea name="headers" rows="6" spellcheck="false">${escapeHtml(headers)}</textarea></label>
+                <label class="field full"><span>${t.body}</span><textarea name="body" rows="7" spellcheck="false">${escapeHtml(config.body || "")}</textarea></label>
+                <label class="field"><span>${t.responseLimit} (B)</span><input name="response_limit" type="number" required min="256" max="65536" step="256" value="${config.response_limit}"></label>
+                <div class="toggles">
+                  <label class="toggle"><input name="verify_ssl" type="checkbox" ${config.verify_ssl ? "checked" : ""}><span>${t.verifySsl}</span></label>
+                  <label class="toggle"><input name="follow_redirects" type="checkbox" ${config.follow_redirects ? "checked" : ""}><span>${t.redirects}</span></label>
+                </div>
+              </div>
+              ${this._error ? `<div class="alert form-alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon>${escapeHtml(this._error)}</div>` : ""}
+            </div>
+            <div class="dialog-actions">
+              ${editor.entry_id ? `<button type="button" class="danger-text" data-action="delete" data-entry-id="${editor.entry_id}" ${this._saving ? "disabled" : ""}><ha-icon icon="mdi:delete-outline"></ha-icon>${t.delete}</button>` : ""}
+              <span class="action-spacer"></span>
+              <button type="button" class="secondary" data-action="close-editor" ${this._saving ? "disabled" : ""}>${t.cancel}</button>
+              <button type="submit" class="primary" ${this._saving ? "disabled" : ""}><ha-icon icon="${this._saving ? "mdi:loading" : "mdi:content-save-outline"}" class="${this._saving ? "spin" : ""}"></ha-icon>${this._saving ? t.saving : t.save}</button>
+            </div>
+          </form>
+        </section>
+      </div>`;
+  }
+
+  _deleteDialog(request) {
+    const t = this._t;
+    return `
+      <div class="overlay" data-action="cancel-delete">
+        <section class="dialog confirm-dialog" role="alertdialog" aria-modal="true" aria-label="${t.deleteTitle}">
+          <div class="confirm-content">
+            <ha-icon class="danger-icon" icon="mdi:delete-alert-outline"></ha-icon>
+            <div><h2>${t.deleteTitle}</h2><p><strong>${escapeHtml(request.config.name)}</strong></p><p>${t.deleteConfirm}</p></div>
+          </div>
+          ${request.source === "yaml" ? `<div class="warning yaml-delete"><ha-icon icon="mdi:alert-outline"></ha-icon><span>${t.yamlWarning}</span></div>` : ""}
+          ${this._error ? `<div class="alert confirm-alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon>${escapeHtml(this._error)}</div>` : ""}
+          <div class="dialog-actions">
+            <button class="secondary" data-action="cancel-delete" ${this._deleting ? "disabled" : ""}>${t.cancel}</button>
+            <button class="danger" data-action="confirm-delete" ${this._deleting ? "disabled" : ""}><ha-icon icon="${this._deleting ? "mdi:loading" : "mdi:delete-outline"}" class="${this._deleting ? "spin" : ""}"></ha-icon>${this._deleting ? t.deleting : t.delete}</button>
           </div>
         </section>
       </div>`;
@@ -302,6 +515,7 @@ const STYLES = `
   * { box-sizing:border-box; }
   main { max-width:1500px; margin:0 auto; padding:32px clamp(16px,3vw,40px) 48px; }
   header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:28px; }
+  .toolbar { display:flex; flex:0 0 auto; gap:10px; }
   h1 { margin:0 0 6px; font-size:32px; line-height:1.15; letter-spacing:-.02em; }
   header p { margin:0; color:var(--secondary-text-color); font-size:15px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:18px; }
@@ -317,7 +531,7 @@ const STYLES = `
   .response-preview { display:block; width:100%; min-height:0; margin-top:18px; padding:13px 14px; color:var(--primary-text-color); border-radius:12px; background:var(--secondary-background-color); text-align:left; cursor:pointer; transition:filter .15s; }
   .response-preview:hover { filter:brightness(.97); }
   .response-preview:focus-visible { outline:2px solid var(--primary-color); outline-offset:2px; }
-  .response-preview>span,label { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; color:var(--secondary-text-color); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .response-preview>span,.dialog-content>section>label { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; color:var(--secondary-text-color); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
   .response-preview>span ha-icon { --mdc-icon-size:15px; }
   pre { margin:0; font-family:var(--code-font-family,ui-monospace,monospace); white-space:pre-wrap; overflow-wrap:anywhere; }
   .response-preview pre { height:82px; overflow:auto; overscroll-behavior:contain; font-size:12px; line-height:1.45; scrollbar-width:thin; }
@@ -329,6 +543,7 @@ const STYLES = `
   button ha-icon { --mdc-icon-size:18px; }
   .primary { color:var(--text-primary-color,#fff); background:var(--primary-color); }.secondary { color:var(--primary-text-color); background:var(--secondary-background-color); }.compact { flex:0 0 auto; }
   .actions button { flex:1; }
+  .actions .icon-button { flex:0 0 40px; padding:0; }
   .loading,.empty { display:grid; place-items:center; min-height:280px; color:var(--secondary-text-color); text-align:center; }
   .empty ha-icon { --mdc-icon-size:48px; opacity:.5; }.empty p { margin:12px 0; }
   .alert { display:flex; align-items:center; gap:10px; margin-bottom:18px; padding:12px 14px; border-radius:10px; color:var(--error-color); background:color-mix(in srgb,var(--error-color) 10%,var(--card-background-color)); }
@@ -345,8 +560,33 @@ const STYLES = `
   label:not(:first-of-type) { margin-top:18px; }
   .response-full { min-height:350px; max-height:560px; }
   .dialog-actions { position:sticky; bottom:0; justify-content:flex-end; gap:10px; padding:14px 22px; border-top:1px solid var(--divider-color); background:var(--card-background-color); }
+  .action-spacer { flex:1; }
+  .danger,.danger-text { color:#fff; background:var(--error-color,#db4437); }
+  .danger-text { color:var(--error-color,#db4437); background:transparent; }
+  .editor-dialog { width:min(760px,100%); }
+  .form-content { padding:22px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .field { display:block; min-width:0; }
+  .field.full { grid-column:1/-1; }
+  .field>span { display:block; margin-bottom:7px; font-size:13px; font-weight:600; }
+  .field small { display:block; margin:-2px 0 8px; color:var(--secondary-text-color); font-size:11px; }
+  input,select,textarea { width:100%; color:var(--primary-text-color); border:1px solid var(--divider-color); border-radius:9px; outline:0; background:var(--card-background-color); font-family:inherit; font-size:14px; line-height:1.4; }
+  input,select { height:44px; padding:0 12px; }
+  textarea { resize:vertical; padding:11px 12px; font-family:var(--code-font-family,ui-monospace,monospace); }
+  input:focus,select:focus,textarea:focus { border-color:var(--primary-color); box-shadow:0 0 0 1px var(--primary-color); }
+  .toggles { display:flex; flex-direction:column; justify-content:center; gap:12px; }
+  .toggle { display:flex; align-items:center; gap:9px; font-size:13px; }
+  .toggle input { width:18px; height:18px; margin:0; accent-color:var(--primary-color); }
+  .warning { display:flex; align-items:flex-start; gap:10px; margin-bottom:18px; padding:12px 14px; color:var(--warning-color,#b26a00); border-radius:10px; background:color-mix(in srgb,var(--warning-color,#ffa600) 12%,var(--card-background-color)); font-size:13px; line-height:1.4; }
+  .warning ha-icon { flex:0 0 auto; --mdc-icon-size:20px; }
+  .form-alert { margin:18px 0 0; }
+  .confirm-dialog { width:min(520px,100%); }
+  .confirm-content { display:flex; gap:18px; padding:26px 24px 18px; }
+  .confirm-content h2 { margin:0 0 12px; }.confirm-content p { margin:6px 0; color:var(--secondary-text-color); line-height:1.45; }
+  .danger-icon { flex:0 0 auto; color:var(--error-color,#db4437); --mdc-icon-size:36px; }
+  .yaml-delete { margin:0 24px 18px; }.confirm-alert { margin:0 24px 18px; }
   .spin { animation:spin 1s linear infinite; } @keyframes spin { to { transform:rotate(360deg); } }
-  @media (max-width:720px) { main { padding-top:20px; }.grid { grid-template-columns:1fr; }.dialog-content { grid-template-columns:1fr; }.dialog-content>section+section { border-left:0; border-top:1px solid var(--divider-color); }.dialog { max-height:95vh; }.dialog-actions { flex-wrap:wrap; }.dialog-actions button { flex:1; } }
+  @media (max-width:720px) { main { padding-top:20px; } header { flex-direction:column; }.toolbar { width:100%; }.toolbar button { flex:1; }.grid { grid-template-columns:1fr; }.dialog-content,.form-grid { grid-template-columns:1fr; }.dialog-content>section+section { border-left:0; border-top:1px solid var(--divider-color); }.field.full { grid-column:auto; }.dialog { max-height:95vh; }.dialog-actions { flex-wrap:wrap; }.dialog-actions button { flex:1; }.dialog-actions .danger-text { flex:0 0 auto; }.action-spacer { display:none; } }
 `;
 
 if (!customElements.get("http-requests-panel")) {

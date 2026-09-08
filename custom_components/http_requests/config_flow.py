@@ -112,18 +112,7 @@ def _schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
 
 def _validated(user_input: dict[str, Any]) -> dict[str, Any]:
     """Normalize values before storing them."""
-    config = RequestConfig.from_mapping(user_input)
-    return {
-        CONF_NAME: config.name,
-        CONF_URL: config.url,
-        CONF_METHOD: config.method,
-        CONF_HEADERS: config.headers,
-        CONF_BODY: config.body,
-        CONF_TIMEOUT: config.timeout,
-        CONF_RESPONSE_LIMIT: config.response_limit,
-        CONF_VERIFY_SSL: config.verify_ssl,
-        CONF_FOLLOW_REDIRECTS: config.follow_redirects,
-    }
+    return RequestConfig.from_mapping(user_input).as_dict()
 
 
 class HttpRequestsConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -161,7 +150,15 @@ class HttpRequestsConfigFlow(ConfigFlow, domain=DOMAIN):
         data[CONF_COMMAND_ID] = command_id
         data[CONF_YAML_KEY] = yaml_key
 
-        await self.async_set_unique_id(command_id)
+        existing_entry = await self.async_set_unique_id(command_id)
+        if existing_entry is not None:
+            # YAML remains authoritative after a restart. Clear edits stored by
+            # either the options flow or the panel before applying the import.
+            self.hass.config_entries.async_update_entry(
+                existing_entry,
+                title=data[CONF_NAME],
+                options={},
+            )
         self._abort_if_unique_id_configured(updates=data)
         return self.async_create_entry(title=data[CONF_NAME], data=data)
 

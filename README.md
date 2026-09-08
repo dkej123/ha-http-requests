@@ -6,8 +6,9 @@ represented by a button, an HTTP status sensor, and a response-body sensor.
 
 ## Features
 
-- No YAML configuration.
-- Add, edit, and remove requests through **Settings → Devices & services**.
+- YAML is optional.
+- Add, edit, run, inspect, and remove requests directly in the dedicated
+  **HTTP Requests** sidebar panel.
 - Changes are applied by reloading only the config entry; Home Assistant does
   not need to restart.
 - GET, POST, PUT, PATCH, and DELETE methods.
@@ -37,9 +38,9 @@ of your Home Assistant configuration, then restart Home Assistant once.
 
 ## Configuration
 
-Open **Settings → Devices & services → Add integration → HTTP Requests**. Add
-one integration entry for each request. The setup form does not execute the
-request, so configuring a POST or DELETE request has no side effects.
+Open **HTTP Requests** in the sidebar and select **Add request**. Creating or
+editing a request does not execute it, so configuring a POST or DELETE request
+has no side effects.
 
 | Field | Description |
 | --- | --- |
@@ -53,9 +54,9 @@ request, so configuring a POST or DELETE request has no side effects.
 | Verify TLS certificate | Disable only for a trusted server with a self-signed certificate. |
 | Follow redirects | Whether HTTP redirects should be followed. |
 
-To edit a request, choose **Configure** on its integration entry. The entry is
-reloaded automatically after saving. To add another request, add the HTTP
-Requests integration again.
+Use the pencil button to edit a request. Saving reloads only that request's
+config entry. Use **Delete** in the details or edit dialog to remove it after a
+confirmation prompt.
 
 ## HTTP Requests panel
 
@@ -68,8 +69,8 @@ response dialog.
 Use **Run** to execute a request directly from the panel. **Details** opens a
 dialog with the complete bounded response (pretty-printed when it is JSON) and
 the request configuration: URL, method, source, timeout, response limit, TLS,
-redirects, headers, and body. Editing continues to use Home Assistant's native
-integration configuration screen, opened from the dialog.
+redirects, headers, and body. Adding, editing, and deletion are all available
+without leaving the panel.
 
 The panel and its WebSocket API require an administrator account because
 headers and request bodies may contain credentials.
@@ -120,9 +121,11 @@ the `authentication`, `username`, `password`, `insecure_cipher`, and
 `skip_url_encoding` options are not yet supported.
 
 YAML commands are imported into config entries at startup and receive the same
-button and sensor as commands added in the UI. A stable ID derived from the YAML
-key prevents duplicates. Removing a command from YAML does not automatically
-delete its config entry; remove that entry in **Devices & services** as well.
+button and sensors as commands added in the UI. A stable ID derived from the
+YAML key prevents duplicates. The panel can edit or delete an imported entry,
+but the YAML definition remains the source of truth: it can overwrite changes
+or recreate the request on a later Home Assistant restart. Remove the YAML
+definition when migrating a request permanently to panel management.
 
 Call an imported or UI-created request in an automation with:
 

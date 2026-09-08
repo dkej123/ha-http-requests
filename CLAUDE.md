@@ -18,8 +18,9 @@ entry must not execute its request.
 
 Each entry exposes one execute button, one latest-status sensor, and one
 response-body sensor. An administrator-only custom panel uses WebSocket
-commands to list and execute requests; never make these commands available to
-non-admin users because request headers and bodies can contain credentials.
+commands to create, list, update, execute, and delete requests; never make these
+commands available to non-admin users because request headers and bodies can
+contain credentials.
 Entity unique IDs are based on `command_id`, so renaming a command must not
 replace entities. The response size limit must be enforced while streaming;
 never read an unbounded response into memory.
