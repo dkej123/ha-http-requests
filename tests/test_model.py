@@ -37,15 +37,26 @@ RequestConfig = model.RequestConfig
 RequestConfigurationError = model.RequestConfigurationError
 RequestResult = model.RequestResult
 normalize_yaml_command = model.normalize_yaml_command
+migrate_v1_config = model.migrate_v1_config
 
 
 class RequestConfigTest(unittest.TestCase):
+    def test_v1_migration_adds_section_without_losing_options(self) -> None:
+        data, options = migrate_v1_config(
+            {"name": "Gate", "url": "http://example.test"},
+            {"timeout": 20},
+        )
+
+        self.assertEqual(data["section"], "")
+        self.assertEqual(options, {"timeout": 20, "section": ""})
+
     def test_minimal_get_uses_safe_defaults(self) -> None:
         config = RequestConfig.from_mapping(
             {"name": " Gate ", "url": "http://192.168.1.2/open"}
         )
 
         self.assertEqual(config.name, "Gate")
+        self.assertEqual(config.section, "")
         self.assertEqual(config.method, "GET")
         self.assertEqual(config.headers, {})
         self.assertEqual(config.body, "")
@@ -77,6 +88,7 @@ class RequestConfigTest(unittest.TestCase):
         values = config.as_dict()
 
         self.assertEqual(values["name"], "Gate")
+        self.assertEqual(values["section"], "")
         self.assertEqual(values["method"], "GET")
         self.assertEqual(values["response_limit"], 4096)
 
@@ -198,6 +210,15 @@ class YamlCompatibilityTest(unittest.TestCase):
         )
 
         self.assertEqual(values["headers"], {"content-type": "text/plain"})
+
+    def test_yaml_section_is_trimmed_and_serialized(self) -> None:
+        values = normalize_yaml_command(
+            "example", {"url": "http://example.test/run", "section": "  Garage  "}
+        )
+        config = RequestConfig.from_mapping(values)
+
+        self.assertEqual(config.section, "Garage")
+        self.assertEqual(config.as_dict()["section"], "Garage")
 
 
 if __name__ == "__main__":

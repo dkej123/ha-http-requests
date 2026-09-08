@@ -7,6 +7,7 @@
         "description": "The request is not executed during setup.",
         "data": {
           "name": "Name",
+          "section": "Section",
           "url": "URL",
           "method": "Method",
           "headers": "Headers",
@@ -17,6 +18,7 @@
           "follow_redirects": "Follow redirects"
         },
         "data_description": {
+          "section": "Optional panel group. Leave empty for Unsectioned.",
           "headers": "Key/value object. Add Content-Type here when sending JSON.",
           "body": "Optional static raw request body.",
           "timeout": "Total timeout in seconds.",
@@ -40,6 +42,7 @@
         "description": "Saving reloads this request without restarting Home Assistant.",
         "data": {
           "name": "Name",
+          "section": "Section",
           "url": "URL",
           "method": "Method",
           "headers": "Headers",
@@ -50,6 +53,7 @@
           "follow_redirects": "Follow redirects"
         },
         "data_description": {
+          "section": "Optional panel group. Leave empty for Unsectioned.",
           "headers": "Key/value object. Add Content-Type here when sending JSON.",
           "body": "Optional static raw request body.",
           "timeout": "Total timeout in seconds.",

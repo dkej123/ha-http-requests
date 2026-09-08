@@ -17,6 +17,7 @@ from .const import (
     CONF_NAME,
     CONF_PAYLOAD,
     CONF_RESPONSE_LIMIT,
+    CONF_SECTION,
     CONF_TIMEOUT,
     CONF_URL,
     CONF_VERIFY_SSL,
@@ -24,6 +25,7 @@ from .const import (
     DEFAULT_FOLLOW_REDIRECTS,
     DEFAULT_METHOD,
     DEFAULT_RESPONSE_LIMIT,
+    DEFAULT_SECTION,
     DEFAULT_TIMEOUT,
     DEFAULT_VERIFY_SSL,
     MAX_RESPONSE_LIMIT,
@@ -38,11 +40,24 @@ class RequestConfigurationError(ValueError):
     """Raised when request configuration is invalid."""
 
 
+def migrate_v1_config(
+    data: dict[str, Any], options: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Return version-2 storage with an explicit empty section."""
+    migrated_data = dict(data)
+    migrated_data.setdefault(CONF_SECTION, DEFAULT_SECTION)
+    migrated_options = dict(options)
+    if migrated_options:
+        migrated_options.setdefault(CONF_SECTION, DEFAULT_SECTION)
+    return migrated_data, migrated_options
+
+
 @dataclass(frozen=True)
 class RequestConfig:
     """Validated request configuration."""
 
     name: str
+    section: str
     url: str
     method: str
     headers: dict[str, str]
@@ -56,6 +71,7 @@ class RequestConfig:
         """Serialize validated configuration for storage or the panel."""
         return {
             CONF_NAME: self.name,
+            CONF_SECTION: self.section,
             CONF_URL: self.url,
             CONF_METHOD: self.method,
             CONF_HEADERS: self.headers,
@@ -72,6 +88,8 @@ class RequestConfig:
         name = str(values.get(CONF_NAME, "")).strip()
         if not name:
             raise RequestConfigurationError("name")
+
+        section = str(values.get(CONF_SECTION, DEFAULT_SECTION)).strip()
 
         url = str(values.get(CONF_URL, "")).strip()
         validate_url(url)
@@ -101,6 +119,7 @@ class RequestConfig:
 
         return cls(
             name=name,
+            section=section,
             url=url,
             method=method,
             headers=headers,

@@ -16,6 +16,7 @@ from .const import (
     CONF_METHOD,
     CONF_NAME,
     CONF_RESPONSE_LIMIT,
+    CONF_SECTION,
     CONF_TIMEOUT,
     CONF_URL,
     CONF_VERIFY_SSL,
@@ -79,6 +80,7 @@ def websocket_list_requests(
                 "source": "yaml" if CONF_YAML_KEY in entry.data else "ui",
                 "config": {
                     CONF_NAME: values.get(CONF_NAME, entry.title),
+                    CONF_SECTION: values.get(CONF_SECTION, ""),
                     CONF_URL: values.get(CONF_URL, ""),
                     CONF_METHOD: values.get(CONF_METHOD, "GET"),
                     CONF_HEADERS: values.get(CONF_HEADERS, {}),

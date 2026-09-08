@@ -12,6 +12,7 @@ represented by a button, an HTTP status sensor, and a response-body sensor.
 - Changes are applied by reloading only the config entry; Home Assistant does
   not need to restart.
 - GET, POST, PUT, PATCH, and DELETE methods.
+- Optional sections for organizing related requests.
 - Static headers and request body.
 - Configurable timeout, TLS certificate verification, redirects, and response
   size limit.
@@ -45,6 +46,7 @@ has no side effects.
 | Field | Description |
 | --- | --- |
 | Name | Friendly name used for the device and config entry. |
+| Section | Optional panel group. Empty values appear as **Unsectioned** / **Bez sekcji**. |
 | URL | Absolute `http://` or `https://` URL. Local-network URLs are supported. |
 | Method | GET, POST, PUT, PATCH, or DELETE. |
 | Headers | Key/value object, for example `Content-Type: application/json`. |
@@ -61,10 +63,12 @@ confirmation prompt.
 ## HTTP Requests panel
 
 After installation, **HTTP Requests** appears in the Home Assistant sidebar for
-administrators. Every configured request is shown as a tile in a responsive
-grid. A tile shows its method, URL, latest status, scrollable response preview,
-execution time, and timestamp. Click the response preview to open the complete
-response dialog.
+administrators. Requests are grouped into collapsible sections in first-seen
+order. The **All**, **Successful**, **Failed**, and **Not run** filters show
+counts for the complete request set and hide groups with no matching requests.
+Response previews can be expanded per card or together for the currently
+visible cards. Status is successful only for HTTP 2xx; all other HTTP statuses,
+timeouts, and transport errors are failed.
 
 Use **Run** to execute a request directly from the panel. **Details** opens a
 dialog with the complete bounded response (pretty-printed when it is JSON) and
@@ -106,6 +110,7 @@ http_requests:
   gdrive_run:
     url: "http://100.74.189.47:8080/run"
     method: POST
+    section: Backups
     headers:
       Content-Type: application/json
     payload: '{"force": true}'
@@ -115,8 +120,9 @@ http_requests:
 
 Supported `rest_command` fields are `url`, `method`, `headers`, `payload`,
 `content_type`, `timeout`, and `verify_ssl`. This integration additionally
-supports `body` as an alias for `payload`, plus `response_limit` and
-`follow_redirects`. YAML values are static in this release; Jinja templates and
+supports `body` as an alias for `payload`, plus `response_limit`,
+`follow_redirects`, and `section`. YAML values are static in this release;
+Jinja templates and
 the `authentication`, `username`, `password`, `insecure_cipher`, and
 `skip_url_encoding` options are not yet supported.
 

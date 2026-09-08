@@ -115,6 +115,7 @@ class YamlImportTest(unittest.TestCase):
         self.assertEqual(changes["options"], {})
         self.assertEqual(aborted_with["url"], "http://yaml.test/open")
         self.assertEqual(aborted_with["yaml_key"], "gate")
+        self.assertEqual(aborted_with["section"], "")
 
 
 if __name__ == "__main__":

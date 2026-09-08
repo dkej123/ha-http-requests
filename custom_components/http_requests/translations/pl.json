@@ -7,6 +7,7 @@
         "description": "Żądanie nie zostanie wykonane podczas konfiguracji.",
         "data": {
           "name": "Nazwa",
+          "section": "Sekcja",
           "url": "Adres URL",
           "method": "Metoda",
           "headers": "Nagłówki",
@@ -17,6 +18,7 @@
           "follow_redirects": "Podążaj za przekierowaniami"
         },
         "data_description": {
+          "section": "Opcjonalna grupa w panelu. Puste pole oznacza Bez sekcji.",
           "headers": "Obiekt klucz/wartość. Przy wysyłaniu JSON dodaj tutaj Content-Type.",
           "body": "Opcjonalna, statyczna treść wysyłana bez przetwarzania.",
           "timeout": "Całkowity limit czasu w sekundach.",
@@ -40,6 +42,7 @@
         "description": "Zapisanie przeładuje to żądanie bez restartowania Home Assistanta.",
         "data": {
           "name": "Nazwa",
+          "section": "Sekcja",
           "url": "Adres URL",
           "method": "Metoda",
           "headers": "Nagłówki",
@@ -50,6 +53,7 @@
           "follow_redirects": "Podążaj za przekierowaniami"
         },
         "data_description": {
+          "section": "Opcjonalna grupa w panelu. Puste pole oznacza Bez sekcji.",
           "headers": "Obiekt klucz/wartość. Przy wysyłaniu JSON dodaj tutaj Content-Type.",
           "body": "Opcjonalna, statyczna treść wysyłana bez przetwarzania.",
           "timeout": "Całkowity limit czasu w sekundach.",

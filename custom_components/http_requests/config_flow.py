@@ -23,6 +23,7 @@ from .const import (
     CONF_METHOD,
     CONF_NAME,
     CONF_RESPONSE_LIMIT,
+    CONF_SECTION,
     CONF_TIMEOUT,
     CONF_URL,
     CONF_VERIFY_SSL,
@@ -30,6 +31,7 @@ from .const import (
     DEFAULT_FOLLOW_REDIRECTS,
     DEFAULT_METHOD,
     DEFAULT_RESPONSE_LIMIT,
+    DEFAULT_SECTION,
     DEFAULT_TIMEOUT,
     DEFAULT_VERIFY_SSL,
     DOMAIN,
@@ -53,6 +55,9 @@ def _schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
         {
             vol.Required(
                 CONF_NAME, default=values.get(CONF_NAME, "")
+            ): selector.TextSelector(),
+            vol.Optional(
+                CONF_SECTION, default=values.get(CONF_SECTION, DEFAULT_SECTION)
             ): selector.TextSelector(),
             vol.Required(
                 CONF_URL, default=values.get(CONF_URL, "http://")
@@ -118,7 +123,7 @@ def _validated(user_input: dict[str, Any]) -> dict[str, Any]:
 class HttpRequestsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Create HTTP request commands from the Home Assistant UI."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

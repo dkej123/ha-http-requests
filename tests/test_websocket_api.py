@@ -103,6 +103,9 @@ class _ConfigEntries:
     def async_get_entry(self, _entry_id):
         return self.entry
 
+    def async_entries(self, _domain):
+        return [self.entry] if self.entry is not None else []
+
     def async_update_entry(self, entry, **changes) -> None:
         self.update = (entry, changes)
 
@@ -114,11 +117,30 @@ class _ConfigEntries:
         return {"require_restart": False}
 
 
-def _config(name="Gate"):
-    return {"name": name, "url": "http://example.test/open"}
+def _config(name="Gate", section=""):
+    return {"name": name, "section": section, "url": "http://example.test/open"}
 
 
 class WebsocketMutationTest(unittest.TestCase):
+    def test_list_always_returns_section(self) -> None:
+        entry = SimpleNamespace(
+            entry_id="one",
+            domain="http_requests",
+            title="Gate",
+            state="loaded",
+            data={"name": "Gate", "url": "http://example.test/open"},
+            options={},
+        )
+        connection = _Connection()
+
+        websocket_api.websocket_list_requests(
+            SimpleNamespace(config_entries=_ConfigEntries(entry)),
+            connection,
+            {"id": 9},
+        )
+
+        self.assertEqual(connection.result[1]["requests"][0]["config"]["section"], "")
+
     def test_create_uses_config_flow_with_validated_defaults(self) -> None:
         entries = _ConfigEntries()
         connection = _Connection()
@@ -135,6 +157,7 @@ class WebsocketMutationTest(unittest.TestCase):
         self.assertEqual(domain, "http_requests")
         self.assertEqual(context, {"source": "user"})
         self.assertEqual(data["method"], "GET")
+        self.assertEqual(data["section"], "")
         self.assertEqual(connection.result, (1, {"entry_id": "created"}))
 
     def test_update_stores_validated_options_and_reloads_entry(self) -> None:
@@ -146,7 +169,7 @@ class WebsocketMutationTest(unittest.TestCase):
             websocket_api.websocket_update_request(
                 SimpleNamespace(config_entries=entries),
                 connection,
-                {"id": 2, "entry_id": "one", "config": _config("Door")},
+                {"id": 2, "entry_id": "one", "config": _config("Door", " Garage ")},
             )
         )
 
@@ -154,6 +177,7 @@ class WebsocketMutationTest(unittest.TestCase):
         self.assertIs(updated_entry, entry)
         self.assertEqual(changes["title"], "Door")
         self.assertEqual(changes["options"]["response_limit"], 4096)
+        self.assertEqual(changes["options"]["section"], "Garage")
         self.assertEqual(connection.result, (2, {"entry_id": "one"}))
 
     def test_delete_returns_home_assistant_removal_result(self) -> None:

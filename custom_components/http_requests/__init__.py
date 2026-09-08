@@ -19,10 +19,12 @@ from .const import (
     CONF_METHOD,
     CONF_PAYLOAD,
     CONF_RESPONSE_LIMIT,
+    CONF_SECTION,
     CONF_TIMEOUT,
     CONF_URL,
     CONF_VERIFY_SSL,
     CONF_YAML_KEY,
+    DEFAULT_SECTION,
     DEFAULT_FOLLOW_REDIRECTS,
     DEFAULT_METHOD,
     DEFAULT_RESPONSE_LIMIT,
@@ -35,7 +37,7 @@ from .const import (
     MIN_TIMEOUT,
     SUPPORTED_METHODS,
 )
-from .model import RequestConfig
+from .model import RequestConfig, migrate_v1_config
 from .panel import async_register_panel
 from .websocket_api import async_register_websocket_commands
 
@@ -55,6 +57,7 @@ YAML_COMMAND_SCHEMA = vol.Schema(
         vol.Optional(CONF_PAYLOAD): cv.string,
         vol.Optional(CONF_BODY): cv.string,
         vol.Optional(CONF_CONTENT_TYPE): cv.string,
+        vol.Optional(CONF_SECTION, default=DEFAULT_SECTION): cv.string,
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): vol.All(
             vol.Coerce(int), vol.Range(min=MIN_TIMEOUT, max=MAX_TIMEOUT)
         ),
@@ -99,6 +102,20 @@ async def async_setup_entry(
         async_get_clientsession(hass), RequestConfig.from_mapping(values)
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    return True
+
+
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: HttpRequestsConfigEntry
+) -> bool:
+    """Add the section field to entries created before config-flow version 2."""
+    if entry.version > 2:
+        return False
+    if entry.version < 2:
+        data, options = migrate_v1_config(entry.data, entry.options)
+        hass.config_entries.async_update_entry(
+            entry, data=data, options=options, version=2
+        )
     return True
 
 

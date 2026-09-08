@@ -4,6 +4,7 @@ DOMAIN = "http_requests"
 
 CONF_COMMAND_ID = "command_id"
 CONF_NAME = "name"
+CONF_SECTION = "section"
 CONF_URL = "url"
 CONF_METHOD = "method"
 CONF_HEADERS = "headers"
@@ -17,6 +18,7 @@ CONF_RESPONSE_LIMIT = "response_limit"
 CONF_YAML_KEY = "yaml_key"
 
 DEFAULT_METHOD = "GET"
+DEFAULT_SECTION = ""
 DEFAULT_TIMEOUT = 10
 DEFAULT_VERIFY_SSL = True
 DEFAULT_FOLLOW_REDIRECTS = True
