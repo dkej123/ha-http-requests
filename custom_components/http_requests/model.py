@@ -198,6 +198,24 @@ class RequestResult:
             "error": self.error,
         }
 
+    def as_action_response(self) -> dict[str, Any]:
+        """Return this execution's response without consulting shared state."""
+        content: Any = self.body
+        if not self.truncated:
+            try:
+                content = json.loads(self.body, parse_constant=_reject_json_constant)
+            except (ValueError, TypeError):
+                pass
+        return {
+            "status": self.status,
+            "content": content,
+            "body": self.body,
+            "content_type": self.content_type,
+            "elapsed_ms": self.elapsed_ms,
+            "timestamp": self.timestamp.isoformat(),
+            "truncated": self.truncated,
+        }
+
     @classmethod
     def failure(cls, error: str, elapsed_ms: int) -> "RequestResult":
         """Build a failed result without exposing exception details."""
@@ -206,6 +224,11 @@ class RequestResult:
             elapsed_ms=elapsed_ms,
             error=error,
         )
+
+
+def _reject_json_constant(value: str) -> None:
+    """Keep non-JSON NaN/Infinity responses as text."""
+    raise ValueError(value)
 
 
 def validate_url(value: str) -> None:

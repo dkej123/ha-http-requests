@@ -1,13 +1,19 @@
 {
   "domain": "http_requests",
   "name": "HTTP Requests",
-  "codeowners": ["@dkej123"],
+  "codeowners": [
+    "@dkej123"
+  ],
   "config_flow": true,
-  "dependencies": ["http", "panel_custom", "websocket_api"],
+  "dependencies": [
+    "http",
+    "panel_custom",
+    "websocket_api"
+  ],
   "documentation": "https://github.com/dkej123/ha-http-requests",
   "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/dkej123/ha-http-requests/issues",
   "requirements": [],
-  "version": "0.5.2"
+  "version": "0.6.0"
 }

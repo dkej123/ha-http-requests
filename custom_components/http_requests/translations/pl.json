@@ -71,11 +71,6 @@
     }
   },
   "entity": {
-    "button": {
-      "execute": {
-        "name": "Wykonaj"
-      }
-    },
     "sensor": {
       "last_response": {
         "name": "Ostatnia odpowiedź"
@@ -88,6 +83,24 @@
   "exceptions": {
     "request_failed": {
       "message": "Żądanie HTTP nie powiodło się: {error}"
+    },
+    "request_not_found": {
+      "message": "Wybrany request HTTP nie istnieje."
+    },
+    "request_not_loaded": {
+      "message": "Wybrany request HTTP nie jest załadowany. Włącz go lub spróbuj ponownie po zakończeniu przeładowania."
+    }
+  },
+  "services": {
+    "execute": {
+      "name": "Wykonaj request",
+      "description": "Wykonuje zapisany request HTTP i opcjonalnie zwraca odpowiedź.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Wybierz zapisany request HTTP."
+        }
+      }
     }
   }
 }

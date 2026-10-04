@@ -16,8 +16,10 @@ bounded response in memory. Never log configured URLs, headers, bodies, or
 response bodies because they may contain credentials. Adding/editing a config
 entry must not execute its request.
 
-Each entry exposes one execute button, one latest-status sensor, and one
-response-body sensor. An administrator-only custom panel uses WebSocket
+Each entry exposes one latest-status sensor and one response-body sensor.
+The `http_requests.execute` action targets a config entry and optionally returns
+the bounded response. No button entities are created; old button registry
+entries are removed at setup. An administrator-only custom panel uses WebSocket
 commands to create, list, update, execute, and delete requests; never make these
 commands available to non-admin users because request headers and bodies can
 contain credentials.

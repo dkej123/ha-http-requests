@@ -71,11 +71,6 @@
     }
   },
   "entity": {
-    "button": {
-      "execute": {
-        "name": "Execute"
-      }
-    },
     "sensor": {
       "last_response": {
         "name": "Last response"
@@ -88,6 +83,24 @@
   "exceptions": {
     "request_failed": {
       "message": "The HTTP request failed: {error}"
+    },
+    "request_not_found": {
+      "message": "The selected HTTP request does not exist."
+    },
+    "request_not_loaded": {
+      "message": "The selected HTTP request is not loaded. Enable it or retry after it finishes reloading."
+    }
+  },
+  "services": {
+    "execute": {
+      "name": "Execute request",
+      "description": "Execute a saved HTTP request and optionally return its response.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Select the saved HTTP request."
+        }
+      }
     }
   }
 }

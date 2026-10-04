@@ -1,10 +1,5 @@
 {
   "entity": {
-    "button": {
-      "execute": {
-        "default": "mdi:web"
-      }
-    },
     "sensor": {
       "last_response": {
         "default": "mdi:web-check"
@@ -12,6 +7,11 @@
       "response_body": {
         "default": "mdi:text-box-outline"
       }
+    }
+  },
+  "services": {
+    "execute": {
+      "service": "mdi:web"
     }
   }
 }

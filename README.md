@@ -2,7 +2,8 @@
 
 A custom Home Assistant integration for creating and running arbitrary HTTP
 requests entirely from the Home Assistant UI. Each configured request is
-represented by a button, an HTTP status sensor, and a response-body sensor.
+run through the `http_requests.execute` action and exposes an HTTP status
+sensor and a response-body sensor.
 
 ## Features
 
@@ -81,8 +82,9 @@ headers and request bodies may contain credentials.
 
 ## Entities and automations
 
-- `button.<name>_execute` runs the request. It can be pressed from a dashboard
-  or through the standard `button.press` action in an automation.
+- `http_requests.execute` runs a saved request selected with the request picker
+  (`config_entry_id`). It optionally returns this execution’s result through
+  `response_variable`. No button entities are created.
 - `sensor.<name>_last_response` has the HTTP status code as its state. Before
   the first run its state is unknown; transport failures use `error`.
 - `sensor.<name>_response_body` shows the first 255 characters of the response
@@ -127,8 +129,8 @@ the `authentication`, `username`, `password`, `insecure_cipher`, and
 `skip_url_encoding` options are not yet supported.
 
 YAML commands are imported into config entries at startup and receive the same
-button and sensors as commands added in the UI. A stable ID derived from the
-YAML key prevents duplicates. The panel can edit or delete an imported entry,
+action access and sensors as commands added in the UI. A stable ID derived
+from the YAML key prevents duplicates. The panel can edit or delete an imported entry,
 but the YAML definition remains the source of truth: it can overwrite changes
 or recreate the request on a later Home Assistant restart. Remove the YAML
 definition when migrating a request permanently to panel management.
@@ -136,10 +138,31 @@ definition when migrating a request permanently to panel management.
 Call an imported or UI-created request in an automation with:
 
 ```yaml
-action: button.press
-target:
-  entity_id: button.gdrive_run_execute
+action: http_requests.execute
+data:
+  config_entry_id: "<request config entry ID>"
+response_variable: response
 ```
+
+The action response includes `status`, `content` (parsed JSON when complete and
+valid, otherwise text), `body` (raw text), `content_type`, `elapsed_ms`,
+`timestamp`, and `truncated`. Response bodies keep the configured size limit.
+Omit `response_variable` when only execution is needed. HTTP error statuses
+(e.g. 404 or 500) are returned for the automation to handle; transport errors
+and timeouts raise an action error, as they did with the execution button.
+Request settings remain static; action parameters do not override them.
+
+### Migrating from buttons (0.6.0)
+
+The execute button entities have been removed. Replace each `button.press`
+call targeting an HTTP Requests button with `http_requests.execute` and the
+corresponding `config_entry_id` in `data`, as shown above. In the visual editor,
+select **HTTP Requests: Execute request** and choose the saved request.
+Update dashboard tap/hold/double-tap actions too: use `perform-action` with
+`perform_action: http_requests.execute` and `data.config_entry_id`.
+Old button registry entries are removed automatically when each request loads;
+existing sensor IDs and request configuration are preserved. Other users must
+migrate their automations and dashboards themselves before upgrading.
 
 ## Releases
 

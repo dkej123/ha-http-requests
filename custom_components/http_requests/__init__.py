@@ -38,10 +38,12 @@ from .const import (
     SUPPORTED_METHODS,
 )
 from .model import RequestConfig, migrate_v1_config
+from .migration import async_remove_legacy_buttons
 from .panel import async_register_panel
+from .services import async_register_services
 from .websocket_api import async_register_websocket_commands
 
-PLATFORMS: tuple[Platform, ...] = (Platform.BUTTON, Platform.SENSOR)
+PLATFORMS: tuple[Platform, ...] = (Platform.SENSOR,)
 
 HttpRequestsConfigEntry = ConfigEntry[HttpRequestRuntime]
 
@@ -81,6 +83,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the panel API and import YAML requests."""
+    async_register_services(hass)
     async_register_websocket_commands(hass)
     await async_register_panel(hass)
     for yaml_key, command in config.get(DOMAIN, {}).items():
@@ -102,6 +105,7 @@ async def async_setup_entry(
         async_get_clientsession(hass), RequestConfig.from_mapping(values)
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    async_remove_legacy_buttons(hass, entry.entry_id)
     return True
 
 
