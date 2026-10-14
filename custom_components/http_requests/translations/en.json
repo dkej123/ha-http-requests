@@ -89,6 +89,12 @@
     },
     "request_not_loaded": {
       "message": "The selected HTTP request is not loaded. Enable it or retry after it finishes reloading."
+    },
+    "invalid_request": {
+      "message": "Invalid request field: {field}"
+    },
+    "create_failed": {
+      "message": "Could not create the request"
     }
   },
   "services": {
@@ -105,6 +111,116 @@
           "description": "Values for {{ name }} placeholders in the request URL, headers and body. URL values are percent-encoded."
         }
       }
+    },
+    "create": {
+      "name": "Create request",
+      "description": "Create a saved HTTP request (administrators only). Put secret header values in the panel, not in action data.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Name"
+        },
+        "section": {
+          "name": "Section",
+          "description": "Section"
+        },
+        "url": {
+          "name": "URL",
+          "description": "URL"
+        },
+        "method": {
+          "name": "Method",
+          "description": "Method"
+        },
+        "headers": {
+          "name": "Headers",
+          "description": "Headers"
+        },
+        "body": {
+          "name": "Body",
+          "description": "Body"
+        },
+        "timeout": {
+          "name": "Timeout",
+          "description": "Timeout"
+        },
+        "response_limit": {
+          "name": "Response limit",
+          "description": "Response limit"
+        },
+        "verify_ssl": {
+          "name": "Verify SSL",
+          "description": "Verify SSL"
+        },
+        "follow_redirects": {
+          "name": "Follow redirects",
+          "description": "Follow redirects"
+        }
+      }
+    },
+    "update": {
+      "name": "Update request",
+      "description": "Change a saved request (administrators only). Only given fields change; headers are merged and a null value removes a header.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Request"
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name"
+        },
+        "section": {
+          "name": "Section",
+          "description": "Section"
+        },
+        "url": {
+          "name": "URL",
+          "description": "URL"
+        },
+        "method": {
+          "name": "Method",
+          "description": "Method"
+        },
+        "headers": {
+          "name": "Headers",
+          "description": "Headers"
+        },
+        "body": {
+          "name": "Body",
+          "description": "Body"
+        },
+        "timeout": {
+          "name": "Timeout",
+          "description": "Timeout"
+        },
+        "response_limit": {
+          "name": "Response limit",
+          "description": "Response limit"
+        },
+        "verify_ssl": {
+          "name": "Verify SSL",
+          "description": "Verify SSL"
+        },
+        "follow_redirects": {
+          "name": "Follow redirects",
+          "description": "Follow redirects"
+        }
+      }
+    },
+    "delete": {
+      "name": "Delete request",
+      "description": "Remove a saved HTTP request (administrators only).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Request"
+        }
+      }
+    },
+    "list": {
+      "name": "List requests",
+      "description": "List saved requests without header values or body (administrators only)."
     }
   }
 }

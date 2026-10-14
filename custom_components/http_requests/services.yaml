@@ -10,3 +10,100 @@ execute:
       example: '{"document": "0123456789abcdef0123456789abcdef"}'
       selector:
         object:
+
+create:
+  fields:
+    name:
+      required: true
+      selector:
+        text:
+    section:
+      selector:
+        text:
+    url:
+      required: true
+      selector:
+        text:
+    method:
+      selector:
+        select:
+          options: [GET, POST, PUT, PATCH, DELETE]
+    headers:
+      selector:
+        object:
+    body:
+      selector:
+        text:
+          multiline: true
+    timeout:
+      selector:
+        number:
+          min: 1
+          max: 300
+    response_limit:
+      selector:
+        number:
+          min: 256
+          max: 65536
+    verify_ssl:
+      selector:
+        boolean:
+    follow_redirects:
+      selector:
+        boolean:
+
+update:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: http_requests
+    name:
+      required: false
+      selector:
+        text:
+    section:
+      selector:
+        text:
+    url:
+      required: false
+      selector:
+        text:
+    method:
+      selector:
+        select:
+          options: [GET, POST, PUT, PATCH, DELETE]
+    headers:
+      selector:
+        object:
+    body:
+      selector:
+        text:
+          multiline: true
+    timeout:
+      selector:
+        number:
+          min: 1
+          max: 300
+    response_limit:
+      selector:
+        number:
+          min: 256
+          max: 65536
+    verify_ssl:
+      selector:
+        boolean:
+    follow_redirects:
+      selector:
+        boolean:
+
+delete:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: http_requests
+
+list:

@@ -19,7 +19,10 @@ entry must not execute its request.
 Each entry exposes one latest-status sensor and one response-body sensor.
 The `http_requests.execute` action targets a config entry and optionally returns
 the bounded response. No button entities are created; old button registry
-entries are removed at setup. An administrator-only custom panel uses WebSocket
+entries are removed at setup. Administrator-only actions in `management.py` (`create`, `update`, `delete`,
+`list`) mirror the panel's create/update/delete/list for scripts and API
+clients; `list` must never return header values or bodies.
+An administrator-only custom panel uses WebSocket
 commands to create, list, update, execute, and delete requests; never make these
 commands available to non-admin users because request headers and bodies can
 contain credentials.

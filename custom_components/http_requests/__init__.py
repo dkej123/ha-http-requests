@@ -40,6 +40,7 @@ from .const import (
 from .model import RequestConfig, migrate_v1_config
 from .migration import async_remove_legacy_buttons
 from .panel import async_register_panel
+from .management import async_register_management_services
 from .services import async_register_services
 from .websocket_api import async_register_websocket_commands
 
@@ -84,6 +85,7 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the panel API and import YAML requests."""
     async_register_services(hass)
+    async_register_management_services(hass)
     async_register_websocket_commands(hass)
     await async_register_panel(hass)
     for yaml_key, command in config.get(DOMAIN, {}).items():

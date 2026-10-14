@@ -89,6 +89,12 @@
     },
     "request_not_loaded": {
       "message": "Wybrany request HTTP nie jest załadowany. Włącz go lub spróbuj ponownie po zakończeniu przeładowania."
+    },
+    "invalid_request": {
+      "message": "Nieprawidłowe pole requestu: {field}"
+    },
+    "create_failed": {
+      "message": "Nie udało się utworzyć requestu"
     }
   },
   "services": {
@@ -105,6 +111,116 @@
           "description": "Wartości dla symboli {{ nazwa }} w adresie URL, nagłówkach i treści zapytania. Wartości w URL są kodowane procentowo."
         }
       }
+    },
+    "create": {
+      "name": "Utwórz request",
+      "description": "Tworzy zapisany request HTTP (tylko administratorzy). Tajne wartości nagłówków wpisuj w panelu, nie w danych akcji.",
+      "fields": {
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa"
+        },
+        "section": {
+          "name": "Sekcja",
+          "description": "Sekcja"
+        },
+        "url": {
+          "name": "URL",
+          "description": "URL"
+        },
+        "method": {
+          "name": "Metoda",
+          "description": "Metoda"
+        },
+        "headers": {
+          "name": "Nagłówki",
+          "description": "Nagłówki"
+        },
+        "body": {
+          "name": "Treść",
+          "description": "Treść"
+        },
+        "timeout": {
+          "name": "Limit czasu",
+          "description": "Limit czasu"
+        },
+        "response_limit": {
+          "name": "Limit odpowiedzi",
+          "description": "Limit odpowiedzi"
+        },
+        "verify_ssl": {
+          "name": "Weryfikuj SSL",
+          "description": "Weryfikuj SSL"
+        },
+        "follow_redirects": {
+          "name": "Podążaj za przekierowaniami",
+          "description": "Podążaj za przekierowaniami"
+        }
+      }
+    },
+    "update": {
+      "name": "Zmień request",
+      "description": "Zmienia zapisany request (tylko administratorzy). Zmieniają się tylko podane pola; nagłówki są scalane, a wartość null usuwa nagłówek.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Request"
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa"
+        },
+        "section": {
+          "name": "Sekcja",
+          "description": "Sekcja"
+        },
+        "url": {
+          "name": "URL",
+          "description": "URL"
+        },
+        "method": {
+          "name": "Metoda",
+          "description": "Metoda"
+        },
+        "headers": {
+          "name": "Nagłówki",
+          "description": "Nagłówki"
+        },
+        "body": {
+          "name": "Treść",
+          "description": "Treść"
+        },
+        "timeout": {
+          "name": "Limit czasu",
+          "description": "Limit czasu"
+        },
+        "response_limit": {
+          "name": "Limit odpowiedzi",
+          "description": "Limit odpowiedzi"
+        },
+        "verify_ssl": {
+          "name": "Weryfikuj SSL",
+          "description": "Weryfikuj SSL"
+        },
+        "follow_redirects": {
+          "name": "Podążaj za przekierowaniami",
+          "description": "Podążaj za przekierowaniami"
+        }
+      }
+    },
+    "delete": {
+      "name": "Usuń request",
+      "description": "Usuwa zapisany request HTTP (tylko administratorzy).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Request",
+          "description": "Request"
+        }
+      }
+    },
+    "list": {
+      "name": "Lista requestów",
+      "description": "Zwraca zapisane requesty bez wartości nagłówków i treści (tylko administratorzy)."
     }
   }
 }

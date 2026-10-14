@@ -102,6 +102,26 @@ server returns exactly the same status and body as before.
 > recorder. Avoid retaining sensitive response bodies, or exclude these sensors
 > from recorder history when necessary.
 
+### Managing requests from actions (0.8.0)
+
+Besides the panel, administrators can manage requests with actions — useful for
+scripts or tools that use the Home Assistant API:
+
+| Action | Data | Response |
+|---|---|---|
+| `http_requests.create` | `name`, `url` and optional `section`, `method`, `headers`, `body`, `timeout`, `response_limit`, `verify_ssl`, `follow_redirects` | `entry_id` |
+| `http_requests.update` | `config_entry_id` plus the fields to change | `entry_id` |
+| `http_requests.delete` | `config_entry_id` | `entry_id` |
+| `http_requests.list` | – | requests with `header_names`, never header values or body |
+
+- Only administrators (and internal calls without a user) may run them;
+  validation is the same as in the panel.
+- `update` changes only the fields given. `headers` are merged by name and a
+  `null` value removes a header, so a request can be edited without knowing a
+  secret header value.
+- Action data is visible on Home Assistant's event bus: enter secret header
+  values in the panel rather than passing them to `create`/`update`.
+
 ### Variables (0.7.0)
 
 A saved request's URL, header values and body may contain `{{ name }}`
