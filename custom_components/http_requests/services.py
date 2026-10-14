@@ -32,7 +32,7 @@ def async_register_services(hass: HomeAssistant) -> None:
                 translation_domain=DOMAIN, translation_key="request_not_loaded"
             )
 
-        result = await entry.runtime_data.async_execute()
+        result = await entry.runtime_data.async_execute(call.data.get("variables") or {})
         if result.error:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -47,6 +47,12 @@ def async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         "execute",
         async_execute,
-        schema=vol.Schema({vol.Required("config_entry_id"): cv.string}),
+        schema=vol.Schema(
+            {
+                vol.Required("config_entry_id"): cv.string,
+                # Values for {{ name }} placeholders in the saved request.
+                vol.Optional("variables"): dict,
+            }
+        ),
         supports_response=SupportsResponse.OPTIONAL,
     )

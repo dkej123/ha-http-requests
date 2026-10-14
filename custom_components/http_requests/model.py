@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 import json
+import re
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from .const import (
     CONF_BODY,
@@ -38,6 +40,59 @@ from .const import (
 
 class RequestConfigurationError(ValueError):
     """Raised when request configuration is invalid."""
+
+
+class RequestVariablesError(RequestConfigurationError):
+    """Raised when execute-time variables cannot fill a request template."""
+
+
+# {{ name }} placeholders filled from the execute action's `variables`. Plain
+# substitution only: saved requests never evaluate arbitrary templates.
+_PLACEHOLDER = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+
+def request_variables(config: "RequestConfig") -> set[str]:
+    """Names of the placeholders used by a request's URL, headers or body."""
+    texts = [config.url, config.body, *config.headers.values()]
+    return {match.group(1) for text in texts for match in _PLACEHOLDER.finditer(text)}
+
+
+def _render(text: str, variables: Mapping[str, Any], *, in_url: bool) -> str:
+    def substitute(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name not in variables:
+            raise RequestVariablesError(f"missing_variable:{name}")
+        value = variables[name]
+        if not isinstance(value, (str, int, float, bool)):
+            raise RequestVariablesError(f"invalid_variable:{name}")
+        rendered = str(value)
+        # A URL value is one opaque segment/component: it cannot add path
+        # segments, query parameters or change the host.
+        return quote(rendered, safe="") if in_url else rendered
+
+    return _PLACEHOLDER.sub(substitute, text)
+
+
+def render_request(
+    config: "RequestConfig", variables: Mapping[str, Any] | None
+) -> "RequestConfig":
+    """Return the request with {{ name }} placeholders filled from variables."""
+    variables = variables or {}
+    if not request_variables(config):
+        return config
+    url = _render(config.url, variables, in_url=True)
+    try:
+        validate_url(url)
+    except RequestConfigurationError as err:
+        raise RequestVariablesError("invalid_url") from err
+    headers = {
+        name: _render(value, variables, in_url=False)
+        for name, value in config.headers.items()
+    }
+    if any("\n" in value or "\r" in value for value in headers.values()):
+        raise RequestVariablesError("invalid_variable")
+    body = _render(config.body, variables, in_url=False)
+    return replace(config, url=url, headers=headers, body=body)
 
 
 def migrate_v1_config(

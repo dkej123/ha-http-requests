@@ -5,3 +5,8 @@ execute:
       selector:
         config_entry:
           integration: http_requests
+    variables:
+      required: false
+      example: '{"document": "0123456789abcdef0123456789abcdef"}'
+      selector:
+        object:

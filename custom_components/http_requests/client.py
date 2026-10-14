@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import datetime, timezone
 import logging
 from time import monotonic
@@ -11,7 +11,12 @@ from typing import Any
 
 from aiohttp import ClientError, ClientSession, ClientTimeout
 
-from .model import RequestConfig, RequestResult
+from .model import (
+    RequestConfig,
+    RequestResult,
+    RequestVariablesError,
+    render_request,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,24 +40,37 @@ class HttpRequestRuntime:
 
         return remove_listener
 
-    async def async_execute(self) -> RequestResult:
-        """Execute the request and notify entities with the result."""
+    async def async_execute(
+        self, variables: Mapping[str, Any] | None = None
+    ) -> RequestResult:
+        """Execute the request and notify entities with the result.
+
+        `variables` fill {{ name }} placeholders in the URL, headers and body.
+        """
         async with self._lock:
             started = monotonic()
             try:
-                timeout = ClientTimeout(total=self.config.timeout)
-                body = self.config.body if self.config.body else None
+                config = render_request(self.config, variables)
+            except RequestVariablesError as err:
+                # The message names the variable, never its value.
+                self.result = RequestResult.failure(str(err), _elapsed_ms(started))
+                for listener in tuple(self._listeners):
+                    listener()
+                return self.result
+            try:
+                timeout = ClientTimeout(total=config.timeout)
+                body = config.body if config.body else None
                 async with self.session.request(
-                    self.config.method,
-                    self.config.url,
-                    headers=self.config.headers,
+                    config.method,
+                    config.url,
+                    headers=config.headers,
                     data=body,
                     timeout=timeout,
-                    ssl=self.config.verify_ssl,
-                    allow_redirects=self.config.follow_redirects,
+                    ssl=config.verify_ssl,
+                    allow_redirects=config.follow_redirects,
                 ) as response:
                     payload, truncated = await _async_read_limited(
-                        response.content, self.config.response_limit
+                        response.content, config.response_limit
                     )
                     encoding = response.charset or "utf-8"
                     try:

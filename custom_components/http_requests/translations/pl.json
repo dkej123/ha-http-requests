@@ -99,6 +99,10 @@
         "config_entry_id": {
           "name": "Request",
           "description": "Wybierz zapisany request HTTP."
+        },
+        "variables": {
+          "name": "Zmienne",
+          "description": "Wartości dla symboli {{ nazwa }} w adresie URL, nagłówkach i treści zapytania. Wartości w URL są kodowane procentowo."
         }
       }
     }

@@ -102,6 +102,36 @@ server returns exactly the same status and body as before.
 > recorder. Avoid retaining sensitive response bodies, or exclude these sensors
 > from recorder history when necessary.
 
+### Variables (0.7.0)
+
+A saved request's URL, header values and body may contain `{{ name }}`
+placeholders. `http_requests.execute` fills them from its optional `variables`
+mapping:
+
+```yaml
+action: http_requests.execute
+data:
+  config_entry_id: 01ABC...           # saved request, e.g. URL
+                                      # https://sync.example/syncs/progress/{{ document }}
+  variables:
+    document: "{{ trigger.event.data.document }}"
+response_variable: progress
+```
+
+- This is plain substitution, not template evaluation: the saved request
+  cannot run code. Templates in the action data are rendered by Home Assistant
+  before the call, as for any action.
+- A value placed in the URL is percent-encoded as one opaque component, so it
+  cannot change the host, add path segments or query parameters.
+- Header and body values are inserted verbatim; a header value containing a
+  line break is rejected.
+- A missing or non-text variable fails the execution before anything is sent
+  (`missing_variable:<name>` / `invalid_variable:<name>`); values are never
+  included in errors or logs.
+- Requests without placeholders behave exactly as before, with or without
+  `variables`. Executing a templated request from the panel without variables
+  fails the same way.
+
 ## Replacing `rest_command`
 
 YAML configuration is optional. The command mapping follows Home Assistant's

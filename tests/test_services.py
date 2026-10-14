@@ -23,6 +23,7 @@ def _load():
     vol = modules['voluptuous']
     vol.Schema = lambda value: value
     vol.Required = lambda value: value
+    vol.Optional = lambda value: value
     core = modules['homeassistant.core']
     core.HomeAssistant = core.ServiceCall = core.ServiceResponse = object
     core.callback = lambda fn: fn
@@ -77,7 +78,7 @@ class ActionTest(unittest.IsolatedAsyncioTestCase):
         call = self.hass.services.async_register.call_args
         self.assertEqual(call.args[:2], ('http_requests', 'execute'))
         self.assertEqual(call.kwargs['supports_response'], 'optional')
-        self.assertEqual(set(call.kwargs['schema']), {'config_entry_id'})
+        self.assertEqual(set(call.kwargs['schema']), {'config_entry_id', 'variables'})
         self.hass.config_entries.async_get_entry.assert_not_called()
 
     async def test_returns_execution_json_and_updates_via_shared_executor(self):
@@ -85,8 +86,15 @@ class ActionTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result['content'], {'ok': True})
         self.assertEqual(result['body'], self.result.body)
         self.assertEqual(result['status'], 200)
-        self.runtime.async_execute.assert_awaited_once_with()
+        self.runtime.async_execute.assert_awaited_once_with({})
         self.hass.config_entries.async_get_entry.assert_called_once_with('request-one')
+
+    async def test_variables_reach_the_request(self):
+        await self.handler(SimpleNamespace(
+            data={'config_entry_id': 'request-one', 'variables': {'document': 'ee5888'}},
+            return_response=True,
+        ))
+        self.runtime.async_execute.assert_awaited_once_with({'document': 'ee5888'})
 
     async def test_executes_without_response_variable(self):
         self.assertIsNone(await self.call(False))

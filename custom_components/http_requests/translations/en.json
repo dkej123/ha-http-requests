@@ -99,6 +99,10 @@
         "config_entry_id": {
           "name": "Request",
           "description": "Select the saved HTTP request."
+        },
+        "variables": {
+          "name": "Variables",
+          "description": "Values for {{ name }} placeholders in the request URL, headers and body. URL values are percent-encoded."
         }
       }
     }
